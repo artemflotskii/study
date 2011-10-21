@@ -1,0 +1,51 @@
+#!/bin/bash
+
+case $1 in
+	"init")
+		mkdir ".$2"
+		echo "folder .$2 created"
+		cp $2 ".$2/$2"
+		echo "file $2 copied"
+		echo 0 > ".$2/COUNT"
+		;;
+	"commit")
+		read a <".$2/COUNT"
+		echo "COUNT readed"
+		cp ".$2/$2" ".$2/$2_t"
+		echo "File $2 copied"
+		if [ "'diff ".$2/$2_t" $2'" ]; then
+			diff -u ".$2/$2" "$2" > ".$2/$2_$a"
+			let a+=1
+			echo $a > ".$2/COUNT"
+		else
+			echo "nothing to commit"
+		fi
+
+		rm ".$2/$2_t"
+		;;
+	"update")
+		cp ".$2/$2" $2
+		patch $2 ".$2/$2_$3"
+		;;
+	"status")
+		cp ".$2/$2" ".$2/$2_t"
+		read a <".$2/COUNT"
+		let a-=1
+		patch ".$2/$2_t" ".$2/$2_$a"
+#		echo diff ".$2/$2_t" $2
+		cmp ".$2/$2_t" $2 &> /dev/null
+		if [ $? -eq 0 ]
+		then
+			echo "no changes"
+			exit 0
+		else
+			echo "changed"
+			exit 1
+		fi
+
+		rm ".$2/$2_t"
+		;;
+	"diff")
+		diff -u ".$2/$2" $2
+		;;
+esac
